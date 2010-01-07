@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+<TextView  
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:id="@+id/information"
+    android:text=""
+    />
+    
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    >
+    <TextView  
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+	    android:text="Code de la station : "
+	    />
+	<EditText  
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+		android:id="@+id/idStation"
+		android:text=""
+		/>
+</LinearLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    >
+    <TextView  
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+	    android:text="Heure voulue : "
+	    />
+	<EditText  
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+		android:id="@+id/heure"
+		/>
+	<TextView  
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+	    android:text="h"
+	    />
+	<EditText
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+		android:id="@+id/minute"
+		/>
+</LinearLayout>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    >
+	<Button  
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+		android:text="Check"
+		android:id="@+id/check"
+		/>
+	<Button  
+	    android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content"
+		android:text="Clear"
+		android:id="@+id/clear"
+		/>
+</LinearLayout>
+
+<ScrollView android:layout_width="fill_parent" android:layout_height="wrap_content">
+	<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:id="@+id/maTable"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    >
+	</TableLayout>
+</ScrollView>
+</LinearLayout>
