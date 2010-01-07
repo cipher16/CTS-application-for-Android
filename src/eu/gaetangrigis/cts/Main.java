@@ -83,6 +83,7 @@ public class Main extends Activity {
     public void clearResearch()
     {
     	table.removeAllViews();
+        getStationCode("Campus");
     }
     
     public void startResearch()
@@ -160,16 +161,41 @@ public class Main extends Activity {
         	BufferedReader read = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
         	while((res=read.readLine())!=null)
         	{
-        		/*if(res.matches(".*<table class=.depart.*")){dTab=true;}
-        		if(dTab==true&&res.matches(".*</table>.*")){dTab=false;break;}
-        		if(dTab==true){content+=res;}*/
-            	Pattern p = Pattern.compile("<input.*id=\"([^\"]+)\"[^/]+/>");
-            	Matcher m = p.matcher(content);
+            	Pattern p = Pattern.compile("<input(.*)/>");
+            	Pattern param = Pattern.compile("(name|value)=\"([^\"]*)\"");
+            	Matcher m = p.matcher(res);
             	while(m.find())
             	{
-            		for(int i=1;i<=m.groupCount();i++){ret+=m.group(i)+" ";}
-            		//table.addView(addTextRow(ret));
+            		for(int i=1;i<=m.groupCount();i++)
+            		{
+            			ret+=m.group(i);
+        			}
+            		Matcher mparam = param.matcher(ret);
             		ret="";
+            		while(mparam.find())
+            		{
+            			if(mparam.groupCount()>=2)
+            			{
+            				if(mparam.group(1).trim().matches("name"))
+            				{
+            					if(ret.length()>0)
+            					{
+            						ret+="&";
+            					}
+            					ret+=mparam.group(2)+"=";
+            					if(mparam.group(2).endsWith("LibArret"))
+            					{
+            						ret+=nom;
+            					}
+            				}
+            				if(mparam.group(1).trim().matches("value"))
+            				{
+            					ret+=mparam.group(2);
+            				}
+            			}
+            		}
+            		table.addView(addTextRow(ret));
+            		
             	}
         	}
         }
