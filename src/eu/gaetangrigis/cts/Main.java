@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
 import android.R.integer;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.app.TimePickerDialog.OnTimeSetListener;
 import android.os.Bundle;
@@ -20,12 +22,17 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.AdapterView.OnItemClickListener;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -47,7 +54,8 @@ public class Main extends Activity {
 	private EditText nstation;
 	private EditText heure;
 	private EditText minute;
-	private TableLayout table;
+	private ListView list;
+	private ArrayList<HashMap<String, String>> mylist;
 	
 	private int mHeure;
 	private int mMinute;
@@ -61,7 +69,6 @@ public class Main extends Activity {
         setContentView(R.layout.main);
 
 //Recuperation des champs
-        table = (TableLayout)findViewById(R.id.maTable);
         station = (EditText)findViewById(R.id.idStation);
         heure = (EditText)findViewById(R.id.heure);
         minute = (EditText)findViewById(R.id.minute);
@@ -70,12 +77,13 @@ public class Main extends Activity {
     	clear=(Button)findViewById(R.id.clear);
     	gcode=(Button)findViewById(R.id.getNom);
         t =(TextView) findViewById(R.id.information);
+        list = (ListView) findViewById(android.R.id.list);
 
+        mylist = new ArrayList<HashMap<String, String>>();
+        
 //Texte par défaut
         mHeure = c.get(Calendar.HOUR_OF_DAY);
         mMinute = c.get(Calendar.MINUTE);
-        t.setText("Entrez les informations demandées");
-        station.setText("75");
         mTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
 	        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
 	            mHeure = hourOfDay;
@@ -87,12 +95,28 @@ public class Main extends Activity {
         updateTime();
         gcode.setOnClickListener(new OnClickListener() {public void onClick(View v) {clearResearch();getStationCode(nstation.getText().toString());}});
         check.setOnClickListener(new OnClickListener() {public void onClick(View v) {clearResearch();startResearch();}});
-		clear.setOnClickListener(new OnClickListener() {public void onClick(View v) {clearResearch();}});
+		clear.setOnClickListener(new OnClickListener() {public void onClick(View v) {clearResearch();clearView();}});
 		heure.setOnFocusChangeListener(new OnFocusChangeListener() {public void onFocusChange(View v, boolean hasFocus) {if(hasFocus)showDialog(0);}});
 		minute.setOnFocusChangeListener(new OnFocusChangeListener() {public void onFocusChange(View v, boolean hasFocus) {if(hasFocus)showDialog(0);}});
     }
+    /*List view*/
+    public void clearView()
+    {
+    	mylist.clear();
+    	applyList();
+    }
     
-    public void clearResearch(){table.removeAllViews();}
+    public void applyList()
+    {
+    	SimpleAdapter mSchedule = new SimpleAdapter(this, mylist, R.layout.line,
+	             new String[] {"station","date"}, new int[] {R.id.date, R.id.station});
+		list.setAdapter(mSchedule);
+    }
+    /*List view*/
+    public void clearResearch(){
+        mHeure = c.get(Calendar.HOUR_OF_DAY);
+        mMinute = c.get(Calendar.MINUTE);
+    }
     
     public void startResearch()
     {
@@ -102,7 +126,8 @@ public class Main extends Activity {
         HttpResponse resp;
         String res;
         String content=new String();
-        String ret = new String();
+        String[] tabres=new String[3];
+        HashMap<String, String> map;
         boolean dTab=false;
         try {
         	resp = cli.execute(site);
@@ -115,25 +140,19 @@ public class Main extends Activity {
         	}
         	Pattern p = Pattern.compile("<td[^>]*>([^<]*)</td><td[^>]*>([^<]*)</td><td[^>]*>([^<]*)</td>");
         	Matcher m = p.matcher(content);
+        	clearView();
         	while(m.find())
         	{
-        		for(int i=1;i<=m.groupCount();i++){ret+=m.group(i)+" ";}
-        		table.addView(addTextRow(ret));
-        		ret="";
+        		for(int i=1;i<=m.groupCount();i++){tabres[i-1]=m.group(i);}
+        		map = new HashMap<String, String>();
+        		map.put("date", tabres[2]);
+        		map.put("station", tabres[0]+" "+tabres[1]);
+        		mylist.add(map);
         	}
         }
         catch (ClientProtocolException e) {t.setText(e.getMessage());}
 		catch (IOException e) {t.setText(e.getMessage());}
 		finally{t.setText("Recherche terminé");}
-    }
-    
-    public TableRow addTextRow(String text)
-    {
-    	TableRow tr = new TableRow(this);
-        TextView tt = new TextView(this);
-        tt.setText(text);
-        tr.addView(tt);
-		return tr;
     }
     
     @Override
@@ -157,6 +176,7 @@ public class Main extends Activity {
     
     public String getStationCode(String nom)
     {
+    	clearView();
     	HttpGet site   = new HttpGet("http://tr.cts-strasbourg.fr/HorTRweb/RechercheCodesArrets.aspx");
         HttpClient cli = new DefaultHttpClient();
         HttpResponse resp;
@@ -165,7 +185,9 @@ public class Main extends Activity {
         List<NameValuePair> pairs = new ArrayList<NameValuePair>();
         String name="";
         String content=new String();
+        HashMap<String, String> map;
         int nbCode = 0;
+        String[] tabres=new String[2];
         boolean dTab=false;
         try {
         	resp = cli.execute(site);
@@ -224,10 +246,15 @@ public class Main extends Activity {
         	{
         		if(m.groupCount()>0)
         		{
-	        		ret=m.group(1);
-        			station.setText(m.group(1));//put the last
-	        		table.addView(addTextRow(ret));
-	        		ret="";
+        			tabres[nbCode%2]=m.group(1);
+        			if(nbCode%2==1)
+        			{
+            			station.setText(tabres[1]);
+	        			map = new HashMap<String, String>();
+	            		map.put("station", tabres[0]);
+	            		map.put("date", tabres[1]);
+	            		mylist.add(map);
+        			}
         		}
         		nbCode++;
         	}
@@ -235,6 +262,7 @@ public class Main extends Activity {
         }
         catch (ClientProtocolException e) {t.setText(e.getMessage());}
 		catch (IOException e) {t.setText(e.getMessage());}
+		applyList();
 		return nom;
     }
 }
